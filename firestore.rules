@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isChatParticipant(chatId) {
+      return isAuthenticated() && (
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+      );
+    }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId);
+      allow delete: if false; // Profiles shouldn't be deleted easily
+    }
+
+    // Username uniqueness claim rules
+    match /usernames/{username} {
+      allow read: if isAuthenticated();
+      // Only allow creation if the username is not taken, and the writing user is setting their own uid
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      // Allow update/delete only if the user owns the username
+      allow update, delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    // Chat Session Rules
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.participants);
+      // Allow creation if the creator is one of the participants
+      allow create: if isAuthenticated() && (request.auth.uid in request.resource.data.participants);
+      // Allow update (like updating typing status or lastMessage) if the user is a participant
+      allow update: if isAuthenticated() && (request.auth.uid in resource.data.participants);
+      allow delete: if false;
+    }
+
+    // Message Rules
+    match /chats/{chatId}/messages/{messageId} {
+      // Allow read/create if user is a participant of the parent chat
+      allow read: if isChatParticipant(chatId);
+      allow create: if isChatParticipant(chatId) && request.resource.data.senderId == request.auth.uid;
+      // Allow update (like read receipt/status update) if user is a participant
+      allow update: if isChatParticipant(chatId);
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Secure Web Messenger",
+  "description": "A production-grade, WhatsApp-inspired web messaging application featuring end-to-end encryption, real-time messaging, presence tracking, and typing indicators.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

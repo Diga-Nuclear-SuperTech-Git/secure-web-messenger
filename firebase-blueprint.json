@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile with E2EE public key and status.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string", "maxLength": 30, "pattern": "^[a-zA-Z0-9_]{3,30}$" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "photoURL": { "type": "string" },
+        "publicKey": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["online", "offline"] },
+        "lastSeen": { "type": "number" },
+        "privacySearchable": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["uid", "username", "email", "publicKey", "status", "lastSeen", "privacySearchable", "createdAt"]
+    },
+    "Username": {
+      "title": "Username Claim",
+      "description": "Ensures global username uniqueness by mapping username to uid.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "Chat": {
+      "title": "Chat Session",
+      "description": "A 1-to-1 conversation session between two users.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "participants": { "type": "array" },
+        "createdAt": { "type": "number" },
+        "typing": { "type": "object" },
+        "lastMessage": { "type": "object" }
+      },
+      "required": ["id", "participants", "createdAt"]
+    },
+    "Message": {
+      "title": "Encrypted Message",
+      "description": "An end-to-end encrypted message in a chat session.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "chatId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "encryptedText": { "type": "string", "maxLength": 10000 },
+        "iv": { "type": "string", "maxLength": 100 },
+        "timestamp": { "type": "number" },
+        "status": { "type": "string", "enum": ["sent", "delivered", "read"] },
+        "readAt": { "type": "number" }
+      },
+      "required": ["id", "chatId", "senderId", "recipientId", "encryptedText", "iv", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "usernames/{username}": {
+      "schema": "Username",
+      "description": "Username claims for uniqueness"
+    },
+    "chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Active chat sessions"
+    },
+    "chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "End-to-end encrypted messages within a chat"
+    }
+  }
+}
