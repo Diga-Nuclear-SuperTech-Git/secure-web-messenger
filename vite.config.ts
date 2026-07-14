@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: '/secure-web-messenger/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
